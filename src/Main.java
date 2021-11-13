@@ -56,22 +56,18 @@ public class Main {
     }
 
     private static BitSet compress(String input) {
-        Set <Character> unique = new HashSet();
-        for (int i = 0; i < input.length(); i++){
-            unique.add(input.charAt(i));
-        }
         Map<Character, Integer> frequency = new HashMap<>();
-        for (Character c : unique){
-            frequency.put(c, 0);
-        }
         for (int i = 0; i < input.length(); i++){
             Character c = input.charAt(i);
-            frequency.replace(c, frequency.get(c) + 1);
+            if (frequency.containsKey(c))
+                frequency.replace(c, frequency.get(c) + 1);
+            else
+                frequency.put(c, 1);
         }
         System.out.println("||===================================||");
         System.out.println("||          FREQUENCY TABLE          ||");
         System.out.println("||===================================||");
-        for (Character c : unique){
+        for (Character c : frequency.keySet()){
             System.out.println(c + " -> " + frequency.get(c));
         }
 
