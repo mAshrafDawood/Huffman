@@ -1,5 +1,6 @@
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.Array;
 import java.nio.file.Files;
 import java.util.*;
 
@@ -69,6 +70,24 @@ public class Main {
         System.out.println("||===================================||");
         for (Character c : frequency.keySet()){
             System.out.println(c + " -> " + frequency.get(c));
+        }
+        System.out.println("||===================================||");
+
+        ArrayList<Node> nodes = new ArrayList<>();
+        for (Character c :
+                frequency.keySet()) {
+            nodes.add(new Node(c, frequency.get(c)));
+        }
+
+        while (nodes.size() > 2){
+            Collections.sort(nodes);
+
+            Node l = nodes.get(0);
+            Node r = nodes.get(1);
+
+            nodes.remove(l);
+            nodes.remove(r);
+            nodes.add(new Node(l, r));
         }
 
 
