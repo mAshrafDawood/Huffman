@@ -65,13 +65,17 @@ public class Main {
             else
                 frequency.put(c, 1);
         }
+
         System.out.println("||===================================||");
         System.out.println("||          FREQUENCY TABLE          ||");
         System.out.println("||===================================||");
+
         for (Character c : frequency.keySet()){
             System.out.println(c + " -> " + frequency.get(c));
         }
+
         System.out.println("||===================================||");
+        System.out.println();
 
         ArrayList<Node> nodes = new ArrayList<>();
         for (Character c :
@@ -90,7 +94,27 @@ public class Main {
             nodes.add(new Node(l, r));
         }
 
+        Node root = new Node(nodes.get(0), nodes.get(1));
+        Node.updateCodes(root);
+        HashMap<Character, ArrayList<Boolean>> dictionary = Node.getDictionary(root);
 
+        for (Character c :
+                dictionary.keySet()) {
+            System.out.print(c + " -> ");
+            for (Boolean b :
+                    dictionary.get(c)) {
+                System.out.print(b ? "1" : "0");
+            }
+            System.out.println();
+        }
+        System.out.println("||===================================||");
+        System.out.println();
+
+        ArrayList<Boolean> compressedBits = new ArrayList<>();
+        for (int i = 0; i < input.length(); i++){
+            Character c = input.charAt(i);
+            compressedBits.addAll(dictionary.get(c));
+        }
 
         return new BitSet();
     }
