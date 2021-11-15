@@ -1,3 +1,7 @@
+import javax.swing.*;
+import java.awt.*;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Array;
@@ -6,49 +10,145 @@ import java.util.*;
 
 public class Main {
 
-    public static void main(String[] args) {
-        try {
-            if (args.length == 2) {
-                File file = new File(args[1]);
-                if (file.exists()) {
-                    if (args[0].toLowerCase().contains("c")) { // Compress
-                        String input = Files.readString(file.toPath());
-
-                        byte[] compressedTags = compress(input);
-
-                        String newPath = file.getPath() + ".huffman";
-                        File compressedFile = new File(newPath);
-                        compressedFile.createNewFile();
-
-                        Files.write(compressedFile.toPath(), compressedTags);
-
-
-                    } else if (args[0].toLowerCase().contains("d")) { // Decompress
-                        byte[] input = Files.readAllBytes(file.toPath());
-
-                        String decompressedTxt = decompress(input);
-                        System.out.println(decompressedTxt);
-
-                        String newPath = file.getPath() + ".txt";
-
-                        File decompressedFile = new File(newPath);
-                        decompressedFile.createNewFile();
-
-                        List<String> lines = new ArrayList<>();
-                        lines.add(decompressedTxt);
-                        Files.write(decompressedFile.toPath(), lines);
-                    } else {
-                        System.out.println(args[0] + " is invalid argument");
-                    }
-                } else {
-                    System.out.println(args[1] + " is not an existing file");
-                }
-            } else {
-                System.out.println("No arguments were supplied");
+    public static void returnErrorMessage(String message){
+        JFrame FileDoesNotExist = new JFrame("Debug");
+        FileDoesNotExist.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        FileDoesNotExist.setLayout(new GridLayout(2, 1));
+        JLabel errorMessage = new JLabel("Faulty Path entered");
+        FileDoesNotExist.add(errorMessage);
+        JButton confirm = new JButton("Confirm");
+        FileDoesNotExist.add(confirm);
+        FileDoesNotExist.setSize(400, 150);
+        confirm.addMouseListener(new MouseListener() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                FileDoesNotExist.dispose();
             }
-        } catch (IOException e) {
-            System.out.println(e.getMessage());
-        }
+            @Override
+            public void mousePressed(MouseEvent e) {
+            }
+            @Override
+            public void mouseReleased(MouseEvent e) {
+            }
+            @Override
+            public void mouseEntered(MouseEvent e) {
+            }
+            @Override
+            public void mouseExited(MouseEvent e) {
+            }
+        });
+        FileDoesNotExist.setVisible(true);
+    }
+
+    public static void main(String[] args) {
+        //Setting up main frame
+        JFrame mainWindow = new JFrame();
+        mainWindow.setTitle("Standard Huffman Assignment");
+        mainWindow.setSize(800, 600);
+        mainWindow.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        mainWindow.setLayout(new GridLayout(2, 1));
+
+
+        //Setting up Font
+        Font f = new Font("serif", Font.PLAIN, 35);
+
+        //Setting up upper panel
+        JPanel upperPanal = new JPanel(new GridLayout(2, 1));
+        JLabel message = new JLabel("Enter full path to file");
+        message.setHorizontalAlignment(JLabel.CENTER);
+        message.setFont(f);
+        JTextField input = new JTextField();
+        input.setFont(f);
+        upperPanal.add(message);
+        upperPanal.add(input);
+        mainWindow.add(upperPanal);
+
+        //Setting up lower panel
+        JPanel lowerPanel = new JPanel(new GridLayout(1, 2));
+        JButton compressButton = new JButton("Compress");
+        JButton decompressButton = new JButton("Decompress");
+        compressButton.setFont(f);
+        decompressButton.setFont(f);
+        lowerPanel.add(compressButton);
+        lowerPanel.add(decompressButton);
+        mainWindow.add(lowerPanel);
+
+        //Setting up event listeners
+        compressButton.addMouseListener(new MouseListener() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                String path = input.getText();
+                try {
+                    byte[] inputBytes = Files.readAllBytes(new File(path).toPath());
+                    StringBuilder inputString = new StringBuilder();
+                    for (byte b : inputBytes) inputString.append((char) b);
+                    byte[] outputBytes = compress(inputString.toString());
+                    File output = new File(path);
+                    int index = path.length();
+                    for (int i = 0; i < path.length(); i++){
+                        if (path.charAt(i) == '.') index = i;
+                    }
+                    path = path.substring(0, index) + ".haffman";
+                    Files.write(new File(path).toPath(), outputBytes);
+                } catch (IOException ignored) {
+                    returnErrorMessage("Unable to compress due to invalid path");
+                }
+            }
+
+            @Override
+            public void mousePressed(MouseEvent e) {
+            }
+
+            @Override
+            public void mouseReleased(MouseEvent e) {
+            }
+
+            @Override
+            public void mouseEntered(MouseEvent e) {
+            }
+
+            @Override
+            public void mouseExited(MouseEvent e) {
+            }
+        });
+
+        decompressButton.addMouseListener(new MouseListener() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                String path = input.getText();
+                try {
+                    byte[] inputBytes = Files.readAllBytes(new File(path).toPath());
+                    String outputString = decompress(inputBytes);
+                    File output = new File(path);
+                    int index = path.length();
+                    for (int i = 0; i < path.length(); i++){
+                        if (path.charAt(i) == '.') index = i;
+                    }
+                    path = path.substring(0, index) + ".txt";
+                    Files.write(new File(path).toPath(), outputString.getBytes());
+                } catch (IOException ignored) {
+                    returnErrorMessage("Unable to decompress due to invalid path");
+                }
+            }
+
+            @Override
+            public void mousePressed(MouseEvent e) {
+            }
+
+            @Override
+            public void mouseReleased(MouseEvent e) {
+            }
+
+            @Override
+            public void mouseEntered(MouseEvent e) {
+            }
+
+            @Override
+            public void mouseExited(MouseEvent e) {
+            }
+        });
+
+        mainWindow.setVisible(true);
     }
 
     private static String decompress(byte[] input) {
@@ -124,12 +224,15 @@ public class Main {
         Node.updateCodes(root);
         HashMap<Character, ArrayList<Boolean>> dictionary = Node.getDictionary(root);
 
+        System.out.println("||===================================||");
+        System.out.println("||             DICTIONARY            ||");
+        System.out.println("||===================================||");
         for (Character c :
                 dictionary.keySet()) {
             System.out.print(c + " -> ");
             for (Boolean b :
                     dictionary.get(c)) {
-                System.out.print(b ? "1" : "0");
+                System.out.print(b ? 1 : 0);
             }
             System.out.println();
         }
