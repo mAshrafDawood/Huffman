@@ -63,4 +63,53 @@ public class Node implements Comparable<Node> {
         result.putAll(getDictionary(root.right));
         return result;
     }
+
+    public static ArrayList<Boolean> convertToBits(Node root) {
+        ArrayList<Boolean> result = new ArrayList<>();
+        if (root.key != null) {
+            result.add(true);
+
+            for (int i = 0; i < 8; i++) {
+                result.add((((int) root.key >> i) & 1) == 1);
+            }
+        }
+        else {
+            result.add(false);
+            result.addAll(convertToBits(root.left));
+            result.addAll(convertToBits(root.right));
+        }
+
+        return result;
+    }
+
+    private static ArrayList<Boolean> buffer = new ArrayList<>();
+
+    public static int getRemainingBufferSize() {
+        return buffer.size();
+    }
+
+    public static Node convertToNodes(ArrayList<Boolean> bits) {
+        return convertToNodes(bits,true);
+    }
+
+    private static Node convertToNodes(ArrayList<Boolean> bits, boolean resetBuffer) {
+        if (resetBuffer) buffer = bits;
+
+        boolean isLeaf = buffer.get(0);
+        buffer.remove(0);
+
+        if(isLeaf) {
+            int charCode = 0;
+            for (int i = 0; i < 8; i++) {
+                charCode |= buffer.get(i) ? 1 << i : 0;
+            }
+
+            buffer.subList(0, 8).clear();
+
+            return new Node((char) charCode, -1);
+        }
+        else {
+            return new Node(convertToNodes(bits, false), convertToNodes(bits, false));
+        }
+    }
 }

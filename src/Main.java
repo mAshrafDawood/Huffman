@@ -14,13 +14,13 @@ public class Main {
                     if (args[0].toLowerCase().contains("c")) { // Compress
                         String input = Files.readString(file.toPath());
 
-                        BitSet compressedTags = compress(input);
+                        byte[] compressedTags = compress(input);
 
-                        String newPath = file.getPath() + ".haffman";
+                        String newPath = file.getPath() + ".huffman";
                         File compressedFile = new File(newPath);
                         compressedFile.createNewFile();
 
-                        Files.write(compressedFile.toPath(), compressedTags.toByteArray());
+                        Files.write(compressedFile.toPath(), compressedTags);
 
 
                     } else if (args[0].toLowerCase().contains("d")) { // Decompress
@@ -52,11 +52,37 @@ public class Main {
     }
 
     private static String decompress(byte[] input) {
-        //TODO
-        return "";
+        BitSet bitSet = BitSet.valueOf(input);
+        int bitsToThrow = 0;
+        for (int i = 0; i < 3; i++) {
+            bitsToThrow |= bitSet.get(i) ? 1 << i : 0;
+        }
+
+        ArrayList<Boolean> bits = new ArrayList<>((input.length * 8) - 3 - bitsToThrow);
+        for (int i = 3; i < input.length * 8 - bitsToThrow; i++) {
+            bits.add(bitSet.get(i));
+        }
+
+        Node root = Node.convertToNodes(bits);
+        Node.updateCodes(root);
+
+        StringBuilder builder = new StringBuilder();
+        Node currentNode = root;
+        for (Boolean b :
+                bits) {
+            if (b) currentNode = currentNode.left;
+            else currentNode = currentNode.right;
+
+            if (currentNode.key != null) {
+                builder.append(currentNode.key);
+                currentNode = root;
+            }
+        }
+
+        return builder.toString();
     }
 
-    private static BitSet compress(String input) {
+    private static byte[] compress(String input) {
         Map<Character, Integer> frequency = new HashMap<>();
         for (int i = 0; i < input.length(); i++){
             Character c = input.charAt(i);
@@ -116,7 +142,43 @@ public class Main {
             compressedBits.addAll(dictionary.get(c));
         }
 
-        return new BitSet();
+        System.out.println("Data:");
+        System.out.println("Note that the first 3 bits doesn't belong to the data, rather they indicate how many bits "
+                         + "should be thrown away at the end");
+        for (Boolean b :
+                compressedBits) {
+            System.out.print(b ? "1" : "0");
+        }
+        System.out.println();
+
+        ArrayList<Boolean> dictionaryBits = Node.convertToBits(root);
+
+        dictionaryBits.addAll(compressedBits);
+        return bitListToBytes(dictionaryBits);
+    }
+
+    private static byte[] bitListToBytes(ArrayList<Boolean> bits) {
+        // 3 bits to indicate how many bits should be thrown away
+        bits.add(0, false);
+        bits.add(0, false);
+        bits.add(0, false);
+        int bitsToThrow = bits.size() % 8;
+        for (int i = 0; i < 3; i++) {
+            bits.set(i, ((bitsToThrow >> i) & 1) == 1);
+        }
+
+        BitSet bitSet = new BitSet(bits.size());
+        for (int i = 0; i < bits.size(); i++) {
+            bitSet.set(i, bits.get(i));
+        }
+
+        byte[] bytes = bitSet.toByteArray();
+        if(bytes.length * 8 >= bits.size()) {
+            return bytes;
+        }
+        else {
+            return Arrays.copyOf(bytes, bits.size() / 8 + (bits.size() % 8 == 0 ? 0 : 1));
+        }
     }
 }
 
