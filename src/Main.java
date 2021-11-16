@@ -83,12 +83,11 @@ public class Main {
                     StringBuilder inputString = new StringBuilder();
                     for (byte b : inputBytes) inputString.append((char) b);
                     byte[] outputBytes = compress(inputString.toString());
-                    File output = new File(path);
                     int index = path.length();
                     for (int i = 0; i < path.length(); i++){
                         if (path.charAt(i) == '.') index = i;
                     }
-                    path = path.substring(0, index) + ".haffman";
+                    path = path.substring(0, index) + ".huffman";
                     Files.write(new File(path).toPath(), outputBytes);
                 } catch (IOException ignored) {
                     returnErrorMessage("Unable to compress due to invalid path");
@@ -159,7 +158,7 @@ public class Main {
         }
 
         ArrayList<Boolean> bits = new ArrayList<>((input.length * 8) - 3 - bitsToThrow);
-        for (int i = 3; i < input.length * 8 - bitsToThrow; i++) {
+        for (int i = 3; i <= input.length * 8 - bitsToThrow; i++) {
             bits.add(bitSet.get(i));
         }
 
@@ -265,7 +264,7 @@ public class Main {
         bits.add(0, false);
         bits.add(0, false);
         bits.add(0, false);
-        int bitsToThrow = bits.size() % 8;
+        int bitsToThrow = 8 - (bits.size() % 8);
         for (int i = 0; i < 3; i++) {
             bits.set(i, ((bitsToThrow >> i) & 1) == 1);
         }
